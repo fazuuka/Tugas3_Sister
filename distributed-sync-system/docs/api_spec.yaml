@@ -1,0 +1,86 @@
+openapi: 3.0.3
+info:
+  title: Distributed Sync System API
+  version: 0.1.0
+paths:
+  /messages:
+    post:
+      summary: Inter-node message dispatch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageEnvelope'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+components:
+  schemas:
+    MessageEnvelope:
+      type: object
+      properties:
+        type:
+          type: string
+          examples:
+            - lock.acquire.shared
+            - queue.enqueue
+            - cache.invalidate
+            - raft.append_entries
+        payload:
+          type: object
+      required:
+        - type
+        - payload
+    MessageResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        result:
+          type: object
+        error:
+          type: string
+    LockAcquire:
+      type: object
+      properties:
+        key:
+          type: string
+        owner:
+          type: string
+      required:
+        - key
+        - owner
+    QueueEnqueue:
+      type: object
+      properties:
+        queue:
+          type: string
+        payload:
+          type: string
+          description: Base64 encoded payload
+      required:
+        - queue
+        - payload
+    CacheGet:
+      type: object
+      properties:
+        key:
+          type: string
+        requester:
+          type: string
+    CachePut:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+          description: Base64 encoded payload
+      required:
+        - key
+        - value
