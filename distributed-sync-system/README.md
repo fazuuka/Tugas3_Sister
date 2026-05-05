@@ -12,6 +12,9 @@ Kerangka proyek awal untuk sistem sinkronisasi terdistribusi.
 	- `NODE_ROLE=queue python -m src`
 	- `NODE_ROLE=cache python -m src`
 
+Catatan RBAC:
+- Jika `RBAC_ENABLED=true`, gunakan token `RBAC_TOKEN` pada request (contoh: `dev-token-1`).
+
 ## Docker Compose
 
 Dari root repositori:
@@ -29,10 +32,25 @@ Jalankan locust dengan skenario bawaan:
 
 `locust -f benchmarks/load_test_scenarios.py --headless -u 5 -r 1 -t 1m --csv=benchmarks/locust`
 
+Buat grafik hasil:
 
-## Laporan
+`python benchmarks/plot_results.py --csv benchmarks/locust_stats.csv --out benchmarks/results`
 
-Isi [docs/report.md](docs/report.md) dan ekspor ke PDF sebagai `report.pdf`.
+Single-node (opsional):
+
+`$env:LOCK_NODES="localhost:8000"; $env:QUEUE_NODES="localhost:8100"; $env:CACHE_NODES="localhost:8200"`
+
+`locust -f benchmarks/load_test_scenarios.py --headless --host http://localhost:8000 -u 5 -r 1 -t 1m --csv=benchmarks/locust_single`
+
+`python benchmarks/plot_results.py --csv benchmarks/locust_single_stats.csv --out benchmarks/results/single`
+
+## Demo Cepat
+
+Jalankan demo fitur lock, queue, dan cache:
+
+`python scripts/demo.py --token dev-token-1`
+
+
 
 ## Pengujian
 
