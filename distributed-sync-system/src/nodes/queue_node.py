@@ -147,10 +147,13 @@ class DistributedQueueNode:
     async def refresh_membership(self) -> None:
         try:
             raw_members = await self._redis.smembers(self._membership_key())
-            members = [
-                item.decode("ascii") if isinstance(item, bytes) else str(item)
-                for item in raw_members
-            ]
+            members = []
+            for item in raw_members:
+                value = item.decode("ascii") if isinstance(item, bytes) else str(item)
+                host = value.split(":", 1)[0]
+                if host in {"0.0.0.0", "::"}:
+                    continue
+                members.append(value)
             if self._endpoint not in members:
                 members.append(self._endpoint)
             if members:
@@ -240,7 +243,12 @@ class QueueNode(BaseNode):
         bus = _build_message_bus(node_config, security, rbac, token)
         super().__init__(node_config.node_id, node_config.host, node_config.port, node_config.peers, bus)
         endpoints = [f"{peer.host}:{peer.port}" for peer in node_config.peers]
-        endpoint = node_config.node_id if ":" in node_config.node_id else f"{node_config.host}:{node_config.port}"
+        if ":" in node_config.node_id:
+            endpoint = node_config.node_id
+        elif node_config.host in {"0.0.0.0", "::"}:
+            endpoint = f"{node_config.node_id}:{node_config.port}"
+        else:
+            endpoint = f"{node_config.host}:{node_config.port}"
         self._queue = DistributedQueueNode(endpoint, endpoints, bus, redis_url, queue_config)
         self._queue_config = queue_config
 

@@ -114,7 +114,7 @@ class MessageBus:
 
     async def _handle_metrics(self, request: web.Request) -> web.Response:
         data = generate_latest()
-        return web.Response(body=data, content_type=CONTENT_TYPE_LATEST)
+        return web.Response(body=data, headers={"Content-Type": CONTENT_TYPE_LATEST})
 
 
 def build_server_ssl_context(cert_file: str, key_file: str) -> ssl.SSLContext:
